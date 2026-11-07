@@ -8,6 +8,7 @@ app = FastAPI()
 BASE_DIR = Path(__file__).resolve().parent.parent
 AUDIO_DIR = BASE_DIR / "backend" / "audio"
 FRONTEND_FILE = BASE_DIR / "frontend" / "index.html"
+SCRIPT_FILE = BASE_DIR / "frontend" / "main.js"
 
 
 @app.get("/api/audio")
@@ -27,6 +28,22 @@ async def get_audio(name: str):
     return FileResponse(path, media_type="audio/mpeg")
 
 
+@app.delete("/api/audio/{name}", status_code=204)
+async def delete_audio(name: str):
+    if Path(name).name != name or Path(name).suffix.lower() != ".mp3":
+        raise HTTPException(status_code=404)
+    path = AUDIO_DIR / name
+    try:
+        path.unlink()
+    except FileNotFoundError:
+        raise HTTPException(status_code=404)
+
+
 @app.get("/")
 async def root():
     return FileResponse(FRONTEND_FILE)
+
+
+@app.get("/main.js")
+async def main_script():
+    return FileResponse(SCRIPT_FILE, media_type="text/javascript")
