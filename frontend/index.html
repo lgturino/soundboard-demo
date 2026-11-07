@@ -1,0 +1,54 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Soundboard</title>
+  <style>
+    body { max-width: 36rem; margin: 3rem auto; padding: 0 1rem; font: 1rem/1.5 system-ui, sans-serif; }
+    h1 { font-size: 1.5rem; }
+    ul { padding-left: 1.25rem; }
+    li { margin: .5rem 0; }
+    button { font: inherit; cursor: pointer; }
+    audio { width: 100%; margin-top: 1rem; }
+  </style>
+</head>
+<body>
+  <h1>Soundboard</h1>
+  <audio id="player" controls hidden></audio>
+  <p id="status">Loading audio files…</p>
+
+
+
+  <ol id="files"></ol>
+
+  <script>
+    const status = document.getElementById('status');
+    const files = document.getElementById('files');
+    const player = document.getElementById('player');
+
+    fetch('/api/audio')
+      .then(response => {
+        if (!response.ok) throw new Error('can not load audio files');
+        return response.json();
+      })
+      .then(names => {
+        status.textContent = names.length ? '' : 'No MP3 files found.';
+        for (const name of names) {
+          const item = document.createElement('li');
+          const button = document.createElement('button');
+          button.type = 'button';
+          button.textContent = name;
+          button.addEventListener('click', () => {
+            player.src = '/api/audio/' + encodeURIComponent(name);
+            player.hidden = false;
+            player.play();
+          });
+          item.append(button);
+          files.append(item);
+        }
+      })
+      .catch(error => { status.textContent = error.message; });
+  </script>
+</body>
+</html>
