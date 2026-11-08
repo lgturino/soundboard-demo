@@ -1,6 +1,6 @@
 from pathlib import Path
 
-from fastapi import FastAPI, HTTPException
+from fastapi import FastAPI, HTTPException, Form
 from fastapi.responses import FileResponse
 
 import random
@@ -39,10 +39,14 @@ class AudioStore:
 
     def get_random_selection(self, k: int):
         l = len(self.files)
+        if k > l:
+            k = l
         # choose k files to play
         self.selected_files_id = random.sample(range(0, l), k=k)
         self.selected_rep = ", ".join(str(num) for num in self.selected_files)
         self.selected_files = [self.files[fid] for fid in self.selected_files_id]
+
+        return self.selected_files
 
 
     def set_selection(self, s: str):
@@ -66,6 +70,9 @@ async def get_audio(name: str):
         raise HTTPException(status_code=404)
     return FileResponse(path, media_type="audio/mpeg")
 
+@app.post("/api/rand")
+async def get_rand(val: int = Form(...)):
+    return sounds.get_random_selection(val)
 
 @app.delete("/api/audio/{name}", status_code=204)
 async def delete_audio(name: str):
