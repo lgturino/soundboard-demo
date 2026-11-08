@@ -2,6 +2,33 @@ const status = document.getElementById('status');
 const files = document.getElementById('files');
 const player = document.getElementById('player');
 
+const randomForm = document.getElementById('getrand');
+const audioList = document.getElementById('audiolist');
+
+randomForm.addEventListener('submit', async (event) => {
+    event.preventDefault();
+
+    const response = await fetch('/api/rand', {
+        method: 'POST',
+        body: new FormData(randomForm),
+    });
+
+    if (!response.ok) {
+        status.textContent = 'could not get random sounds';
+        return;
+    }
+
+    const names = await response.json();
+    audioList.replaceChildren();
+
+    for (const name of names) {
+        const player = document.createElement('audio');
+        player.src = "/api/audio/" + encodeURIComponent(name);
+        player.controls = true;
+        audioList.append(player);
+    }
+})
+
 fetch('/api/audio')
     .then(response => {
     if (!response.ok) throw new Error('can not load audio files');
@@ -23,6 +50,7 @@ fetch('/api/audio')
         });
         item.append(button);
 
+        // remove file
         const removeButton = document.createElement('button');
         removeButton.type = 'button';
         removeButton.textContent = 'X';
