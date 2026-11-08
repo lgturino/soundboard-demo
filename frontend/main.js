@@ -58,6 +58,26 @@ fetch('/api/selected')
         updateSounds(names);
     });
 
+const uploadForm = document.getElementById('upload');
+
+uploadForm.addEventListener('submit', async (event) => {
+    event.preventDefault();
+
+    const response = await fetch('/api/audio', {
+        method: 'POST',
+        body: new FormData(uploadForm),
+    });
+
+    if (!response.ok) {
+        const error = await response.json();
+        status.textContent = error.detail || 'upload failed';
+        return;
+    }
+
+    uploadForm.reset();
+    location.reload();
+})
+
 fetch('/api/audio')
     .then(response => {
     if (!response.ok) throw new Error('can not load audio files');

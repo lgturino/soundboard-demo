@@ -1,9 +1,10 @@
 from pathlib import Path
 
-from fastapi import FastAPI, HTTPException, Form
+from fastapi import FastAPI, HTTPException, Form, File, UploadFile
 from fastapi.responses import FileResponse
 
 import random
+import shutil
 
 app = FastAPI()
 
@@ -81,6 +82,23 @@ async def get_selected() -> list[str]:
 @app.delete("/api/audio/{name}", status_code=204)
 async def delete_audio(name: str):
     sounds.delete_file(name)
+
+@app.post("/api/audio", status_code=201)
+async def upload_audio(file: UploadFile = File(...)):
+    name = Path(file.filename or "").name
+    if not name or Path(name).suffix.lower() != ".mp3":
+        raise HTTPException(status_code=400, detail="Choose an MP3 file")
+
+    AUDIO_DIR.mkdir(parents=True, exist_ok=True)
+    destination = AUDIO_DIR / name
+    if destination.exists():
+        raise HTTPException(status_code=409, detail="A file with that name already exists, delete it first")
+
+    with destination.open("xb") as output:
+        shutil.copyfileobj(file.file, output)
+
+    sounds.refresh_files()
+    return {"name": name}
 
 @app.get("/")
 async def root():
