@@ -43,17 +43,24 @@ class AudioStore:
         if k > l:
             k = l
         # choose k files to play
-        self.selected_files_id = random.sample(range(0, l), k=k)
-        self.selected_rep = ", ".join(str(num) for num in self.selected_files)
-        self.selected_files = [self.files[fid] for fid in self.selected_files_id]
+        self.selected_files_id = random.sample(range(1, l+1), k=k)
+        self.selected_rep = ", ".join(str(num) for num in self.selected_files_id)
+        self.selected_files = [self.files[fid-1] for fid in self.selected_files_id]
 
         return self.selected_files
 
-
     def set_selection(self, s: str):
+
+        parts = [part.strip() for part in s.split(",")]
+        if not parts or any(not part.isdecimal() for part in parts):
+            raise HTTPException(
+                status_code=400,
+                detail="invalid format: enter file numbers separated by commas"
+            )
+
         self.selected_rep = s
         self.selected_files_id = [int(num.strip()) for num in s.split(",")]
-        self.selected_files = [self.files[fid] for fid in self.selected_files_id]
+        self.selected_files = [self.files[(fid - 1) % len(self.files)] for fid in self.selected_files_id]
 
 sounds = AudioStore(AUDIO_DIR)
 sounds.refresh_files() # initial setup
@@ -77,6 +84,16 @@ async def get_rand(val: int = Form(...)):
 
 @app.get("/api/selected")
 async def get_selected() -> list[str]:
+    return [ sounds.selected_rep ] + sounds.selected_files
+
+
+@app.get("/api/selected-rep")
+async def get_selected() -> str:
+    return sounds.selected_rep
+
+@app.post("/api/selected-rep")
+async def set_selected(rep: str = Form(...)):
+    sounds.set_selection(rep)
     return sounds.selected_files
 
 @app.delete("/api/audio/{name}", status_code=204)

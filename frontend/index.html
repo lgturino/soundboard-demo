@@ -20,9 +20,17 @@
     <h1>Messy Audio Demo Prototype</h1>
     <form method="POST" id="getrand" action="/api/rand">
         <label for="audio_amount"> How many sounds? </label>
-        <input type="number" id="audio_amount" name="val" min="1" required/>
+        <input type="number" id="audio_amount" name="val" min="0" required/>
         <input type="submit" value="Get Random"/>
     </form>
+
+    <form method="POST" id="setaudio" action="/api/set">
+        <label for="audio_amount"> &emsp;&emsp;&emsp;&emsp;Selected: &emsp;
+        </label>
+        <input type="text" id="audio_rep" name="rep" />
+        <input type="submit" value="Set Sounds"/>
+    </form>
+
 
     <div id="audiolist"></div>
 

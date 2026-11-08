@@ -5,6 +5,10 @@ const player = document.getElementById('player');
 const randomForm = document.getElementById('getrand');
 const audioList = document.getElementById('audiolist');
 
+const selectedForm = document.getElementById('setaudio');
+const selectedAmount = document.getElementById('audio_amount');
+const selectedRep = document.getElementById('audio_rep');
+
 function updateSounds(names) {
     for (const name of names) {
 
@@ -47,6 +51,35 @@ randomForm.addEventListener('submit', async (event) => {
 
     updateSounds(names);
 
+    const repr_response = await fetch('/api/selected-rep');
+    if (!repr_response.ok) {
+        selectedRep.value = "error";
+        return;
+    }
+    selectedRep.value = await repr_response.json();
+
+})
+
+selectedForm.addEventListener('submit', async (event) => {
+    event.preventDefault();
+
+    const response = await fetch('/api/selected-rep', {
+        method: 'POST',
+        body: new FormData(selectedForm),
+    });
+
+    if (!response.ok) {
+        status.textContent = 'could not set audios';
+        return;
+    }
+
+    const names = await response.json();
+    audioList.replaceChildren();
+
+    updateSounds(names);
+
+    selectedAmount.value = names.length;
+
 })
 
 fetch('/api/selected')
@@ -55,8 +88,12 @@ fetch('/api/selected')
         return response.json();
     })
     .then(names => {
+        selectedRep.value = names.shift(); // first value is the str repr
         updateSounds(names);
+        selectedAmount.value = names.length;
     });
+
+
 
 const uploadForm = document.getElementById('upload');
 
