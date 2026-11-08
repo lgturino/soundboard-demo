@@ -5,6 +5,30 @@ const player = document.getElementById('player');
 const randomForm = document.getElementById('getrand');
 const audioList = document.getElementById('audiolist');
 
+function updateSounds(names) {
+    for (const name of names) {
+
+        const box = document.createElement('div');
+        box.className = "sound_box";
+
+        const player = document.createElement('audio');
+        player.src = "/api/audio/" + encodeURIComponent(name);
+        player.controls = true;
+
+        const title = document.createElement('p');
+        title.textContent = name;
+
+        // const story = document.createElement('textarea');
+
+        box.append(player);
+        box.append(title);
+        // box.append(story);
+
+        audioList.append(box);
+
+    }
+}
+
 randomForm.addEventListener('submit', async (event) => {
     event.preventDefault();
 
@@ -21,13 +45,18 @@ randomForm.addEventListener('submit', async (event) => {
     const names = await response.json();
     audioList.replaceChildren();
 
-    for (const name of names) {
-        const player = document.createElement('audio');
-        player.src = "/api/audio/" + encodeURIComponent(name);
-        player.controls = true;
-        audioList.append(player);
-    }
+    updateSounds(names);
+
 })
+
+fetch('/api/selected')
+    .then(response => {
+        if (!response.ok) throw new Error('cannot get current selected');
+        return response.json();
+    })
+    .then(names => {
+        updateSounds(names);
+    });
 
 fetch('/api/audio')
     .then(response => {

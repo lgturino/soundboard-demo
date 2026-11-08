@@ -74,6 +74,10 @@ async def get_audio(name: str):
 async def get_rand(val: int = Form(...)):
     return sounds.get_random_selection(val)
 
+@app.get("/api/selected")
+async def get_selected() -> list[str]:
+    return sounds.selected_files
+
 @app.delete("/api/audio/{name}", status_code=204)
 async def delete_audio(name: str):
     sounds.delete_file(name)
